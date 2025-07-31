@@ -3,14 +3,43 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
+import urllib.parse
 
 load_dotenv()
 
-# Database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/field_insights_db")
+def get_database_url():
+    """Get database URL with proper handling for Render PostgreSQL"""
+    database_url = os.getenv("DATABASE_URL")
+    
+    if database_url:
+        # Handle Render's PostgreSQL URL format
+        if database_url.startswith("postgres://"):
+            # Convert postgres:// to postgresql:// for SQLAlchemy
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        return database_url
+    
+    # Fallback to SQLite for local development
+    return "sqlite:///./field_insights.db"
 
-# Create SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
+# Database URL from environment variable
+DATABASE_URL = get_database_url()
+
+# Create SQLAlchemy engine with appropriate configuration
+if DATABASE_URL.startswith("postgresql://"):
+    # PostgreSQL configuration
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=os.getenv("DEBUG", "False").lower() == "true"
+    )
+else:
+    # SQLite configuration
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+    )
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

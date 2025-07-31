@@ -24,8 +24,8 @@ A FastAPI-based backend for the Field Insights Dashboard with PostgreSQL databas
 ### Prerequisites
 
 - Python 3.8+
-- PostgreSQL
-- Redis
+- PostgreSQL (local or Render managed)
+- Redis (optional for background tasks)
 
 ### Installation
 
@@ -53,18 +53,68 @@ A FastAPI-based backend for the Field Insights Dashboard with PostgreSQL databas
    # Edit .env with your database and Redis settings
    ```
 
-5. **Set up PostgreSQL database:**
+### Database Setup Options
+
+#### Option A: Render PostgreSQL (Recommended)
+
+1. **Create PostgreSQL database on Render:**
+   - Go to [render.com](https://render.com)
+   - Create a new PostgreSQL database
+   - Copy the external database URL
+
+2. **Update your `.env` file:**
+   ```env
+   DATABASE_URL=postgres://username:password@host:port/database
+   ```
+
+3. **Set up database:**
+   ```bash
+   python scripts/setup_database.py
+   ```
+
+#### Option B: Local PostgreSQL
+
+1. **Install PostgreSQL locally**
+2. **Create database:**
    ```sql
    CREATE DATABASE field_insights_db;
    ```
 
-6. **Start Redis:**
-   ```bash
-   # Using Docker
-   docker run -d -p 6379:6379 redis:alpine
-   
-   # Or install Redis locally
+3. **Update your `.env` file:**
+   ```env
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/field_insights_db
    ```
+
+#### Option C: SQLite (Development Only)
+
+For local development, you can use SQLite:
+
+```env
+DATABASE_URL=sqlite:///./field_insights.db
+```
+
+### Redis Setup (Optional)
+
+For background tasks with Celery:
+
+```bash
+# Using Docker
+docker run -d -p 6379:6379 redis:alpine
+
+# Or install Redis locally
+```
+
+### Testing Database Setup
+
+Before running the application, test your database setup:
+
+```bash
+# Test database connectivity and operations
+python scripts/test_database.py
+
+# Set up database tables and migrations
+python scripts/setup_database.py
+```
 
 ### Running the Application
 
@@ -192,7 +242,31 @@ The application creates tables automatically on startup. For production, conside
 
 ## Production Deployment
 
-### Docker Setup
+### Option A: Deploy to Render (Recommended)
+
+1. **Create PostgreSQL database on Render:**
+   - Go to [render.com](https://render.com)
+   - Create a new PostgreSQL database
+   - Note the external database URL
+
+2. **Deploy your application:**
+   - Connect your GitHub repository to Render
+   - Create a new Web Service
+   - Configure build settings:
+     - **Build Command**: `pip install -r requirements.txt`
+     - **Start Command**: `python run.py`
+
+3. **Set environment variables in Render:**
+   - `DATABASE_URL`: Your Render PostgreSQL URL
+   - `DEBUG`: `False`
+   - `API_HOST`: `0.0.0.0`
+   - `API_PORT`: `8000`
+
+4. **Deploy:**
+   - Render will automatically deploy your application
+   - The database will be set up on first run
+
+### Option B: Docker Setup
 
 1. **Create Dockerfile:**
    ```dockerfile

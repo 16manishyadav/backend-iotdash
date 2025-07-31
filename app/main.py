@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 from .database import get_db, create_tables
-from .models import SensorReading
+from .models import SensorReading, DailyStats
 from .schemas import (
     SensorReadingCreate, 
     SensorReading as SensorReadingSchema,
@@ -223,6 +223,39 @@ async def get_readings(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching readings: {str(e)}")
+
+@app.delete("/data/clear", tags=["Database Management"])
+async def clear_all_data(db: Session = Depends(get_db)):
+    """
+    Delete all data from the database.
+    
+    ⚠️ WARNING: This will permanently delete ALL sensor readings and daily stats.
+    Use with caution, especially in production environments.
+    
+    Returns:
+    - Number of sensor readings deleted
+    - Number of daily stats deleted
+    """
+    try:
+        # Delete all sensor readings
+        sensor_readings_deleted = db.query(SensorReading).delete()
+        
+        # Delete all daily stats
+        daily_stats_deleted = db.query(DailyStats).delete()
+        
+        # Commit the changes
+        db.commit()
+        
+        return {
+            "message": "All data cleared successfully",
+            "sensor_readings_deleted": sensor_readings_deleted,
+            "daily_stats_deleted": daily_stats_deleted,
+            "timestamp": datetime.now()
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error clearing data: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
