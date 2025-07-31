@@ -14,8 +14,8 @@ def get_database_url():
     if database_url:
         # Handle Render's PostgreSQL URL format
         if database_url.startswith("postgres://"):
-            # Convert postgres:// to postgresql:// for SQLAlchemy
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
+            # Convert postgres:// to postgresql+asyncpg:// for asyncpg
+            database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
         
         return database_url
     
