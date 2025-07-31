@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: field-insights-api
+    runtime: python
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python run.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DEBUG
+        value: "false"
+      - key: API_HOST
+        value: "0.0.0.0"
+      - key: API_PORT
+        value: "8000"
+      - key: ALLOWED_ORIGINS
+        value: "*" 

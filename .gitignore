@@ -233,8 +233,6 @@ docker-compose.yml
 docker-compose.yaml
 
 # Kubernetes
-*.yaml
-*.yml
 !docker-compose.yml
 !docker-compose.yaml
 
