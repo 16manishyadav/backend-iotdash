@@ -11,6 +11,8 @@ services:
         sync: false
       - key: CELERY_RESULT_BACKEND
         sync: false
+      - key: CARGO_HOME
+        value: "/opt/render/project/.cargo"
       - key: DEBUG
         value: "false"
       - key: API_HOST

@@ -5,6 +5,6 @@ pg8000==1.30.5
 celery==5.3.4
 redis==5.0.1
 python-multipart==0.0.6
-pydantic==2.5.0
+pydantic==2.4.2
 python-dotenv==1.0.0
 alembic==1.13.1 
