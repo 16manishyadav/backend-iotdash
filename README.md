@@ -1,396 +1,325 @@
-# Field Insights Dashboard - Backend
+# Field Insights Dashboard API
 
-A FastAPI-based backend for the Field Insights Dashboard with PostgreSQL database and Celery background processing.
+A FastAPI-based backend for IoT sensor data management and analytics, designed for agricultural field monitoring and insights.
 
-## Features
+## 🚀 Features
 
-- **RESTful API**: FastAPI with automatic OpenAPI documentation
-- **Database Integration**: PostgreSQL with SQLAlchemy ORM
-- **Background Processing**: Celery with Redis for async tasks
-- **Real-time Analytics**: Comprehensive sensor data analytics
-- **Health Monitoring**: System health checks and status monitoring
-- **CORS Support**: Cross-origin resource sharing for frontend integration
+### **Core Functionalities**
+- **📊 Real-time Analytics**: Comprehensive sensor data analytics with field and sensor-type specific insights
+- **📡 Sensor Data Management**: Upload and manage IoT sensor readings with batch processing support
+- **⚡ Background Processing**: Handle large data batches (>100 readings) asynchronously using Celery
+- **🏥 Health Monitoring**: System health checks for database and Redis connections
+- **🔍 Data Filtering**: Query sensor readings by field, sensor type, and time ranges
+- **🗄️ Database Management**: Clear data functionality with safety warnings
 
-## Tech Stack
+### **Technical Features**
+- **RESTful API**: Clean, documented API endpoints with automatic OpenAPI documentation
+- **Data Validation**: Robust input validation using Pydantic schemas
+- **Database Flexibility**: Support for both SQLite (local) and PostgreSQL (production)
+- **Message Queue**: Redis-based Celery integration for background tasks
+- **SSL Support**: Secure database connections for production deployments
 
-- **Framework**: FastAPI (Python web framework)
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Background Tasks**: Celery with Redis broker
-- **Validation**: Pydantic schemas
-- **Documentation**: Automatic OpenAPI/Swagger docs
+## 🛠️ Tech Stack
 
-## Quick Start
+- **FastAPI** - Modern, fast web framework with automatic API documentation
+- **SQLAlchemy** - Database ORM with migration support
+- **PostgreSQL** - Primary database for production (with SQLite fallback)
+- **Redis** - Message broker for Celery background tasks
+- **Celery** - Asynchronous task processing for large data batches
+- **Pydantic** - Data validation and serialization
+- **Alembic** - Database migration management
+- **Render** - Cloud platform for PostgreSQL, Redis, and web service deployment
 
-### Prerequisites
+## 📋 Prerequisites
 
-- Python 3.8+
-- PostgreSQL (local or Render managed)
-- Redis (optional for background tasks)
+- Python 3.11+
+- Git
+- PostgreSQL (for production)
+- Redis (for production)
 
-### Installation
+## 🚀 Quick Start
 
-1. **Clone and navigate to backend directory:**
-   ```bash
-   cd backend
-   ```
+### **1. Clone the Repository**
+```bash
+git clone <your-repository-url>
+cd backend-iotdash
+```
 
-2. **Create virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/macOS
-   # or
-   .\venv\Scripts\activate  # Windows
-   ```
+### **2. Set Up Virtual Environment**
+```bash
+# Create virtual environment
+python -m venv venv
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+```
 
-4. **Set up environment variables:**
-   ```bash
-   cp env.example .env
-   # Edit .env with your database and Redis settings
-   ```
+### **3. Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
 
-### Database Setup Options
+### **4. Configure Environment Variables**
 
-#### Option A: Render PostgreSQL (Recommended)
+Create a `.env` file in the root directory:
 
-1. **Create PostgreSQL database on Render:**
-   - Go to [render.com](https://render.com)
-   - Create a new PostgreSQL database
-   - Copy the external database URL
+**For Local Development:**
+```env
+# Database (SQLite for local development)
+DATABASE_URL=sqlite:///./field_insights.db
 
-2. **Update your `.env` file:**
-   ```env
-   DATABASE_URL=postgres://username:password@host:port/database
-   ```
+# App Configuration
+DEBUG=true
+API_HOST=0.0.0.0
+API_PORT=8000
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
-3. **Set up database:**
-   ```bash
-   python scripts/setup_database.py
-   ```
+# Optional: Redis for local development (if you have Redis installed)
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+```
 
-#### Option B: Local PostgreSQL
+**For Production (Render):**
+```env
+# Database (Render PostgreSQL)
+DATABASE_URL=postgres://username:password@host:port/database?sslmode=require
 
-1. **Install PostgreSQL locally**
-2. **Create database:**
-   ```sql
-   CREATE DATABASE field_insights_db;
-   ```
+# Redis (Render Redis)
+CELERY_BROKER_URL=redis://username:password@host:port
+CELERY_RESULT_BACKEND=redis://username:password@host:port
 
-3. **Update your `.env` file:**
-   ```env
-   DATABASE_URL=postgresql://postgres:password@localhost:5432/field_insights_db
-   ```
+# App Configuration
+DEBUG=false
+API_HOST=0.0.0.0
+API_PORT=8000
+ALLOWED_ORIGINS=*
+```
 
-#### Option C: SQLite (Development Only)
+### **5. Run the Application**
+```bash
+python run.py
+```
 
-For local development, you can use SQLite:
+The API will be available at `http://localhost:8000`
+
+### **6. Test the API**
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Get analytics
+curl http://localhost:8000/analytics
+
+# Upload sample sensor data
+curl -X POST http://localhost:8000/sensor-data \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "field_id": "field_001",
+      "sensor_type": "temperature",
+      "reading_value": 25.5,
+      "timestamp": "2024-01-01T12:00:00Z",
+      "unit": "celsius"
+    }
+  ]'
+```
+
+## 📚 API Documentation
+
+Once the server is running, visit:
+- **Interactive API Docs**: `http://localhost:8000/docs`
+- **Alternative API Docs**: `http://localhost:8000/redoc`
+
+### **Available Endpoints**
+
+#### **Sensor Data Management**
+- `POST /sensor-data` - Upload sensor readings (supports batch processing)
+- `GET /readings` - Get sensor readings with optional filtering
+
+#### **Analytics & Insights**
+- `GET /analytics` - Get comprehensive analytics dashboard
+- `GET /analytics/field/{field_id}` - Get field-specific analytics
+- `GET /analytics/sensor/{sensor_type}` - Get sensor-type specific analytics
+
+#### **System Monitoring**
+- `GET /health` - System health check (database & Redis status)
+- `GET /task/{task_id}` - Check background task status and progress
+
+#### **Database Management**
+- `DELETE /data/clear` - Clear all data (⚠️ Use with caution in production)
+
+## 🌐 Production Deployment
+
+This project is optimized for deployment on **Render** with managed services.
+
+### **Render Services Used:**
+
+1. **PostgreSQL Database** - Managed database service
+   - Automatic backups
+   - SSL connections
+   - Scalable storage
+
+2. **Redis Key-Value Store** - Message broker for Celery
+   - High-performance caching
+   - Reliable message queuing
+   - Session storage
+
+3. **Web Service** - Python runtime for FastAPI
+   - Automatic deployments
+   - SSL certificates
+   - Custom domains
+
+### **Deployment Steps:**
+
+1. **Connect your GitHub repository to Render**
+2. **Create a PostgreSQL database** on Render
+3. **Create a Redis service** on Render
+4. **Create a Web Service** pointing to your repository
+5. **Set environment variables** in the Render dashboard
+6. **Deploy!** Render will automatically build and deploy your application
+
+### **Environment Variables for Render:**
 
 ```env
-DATABASE_URL=sqlite:///./field_insights.db
+# Database (from Render PostgreSQL dashboard)
+DATABASE_URL=postgres://username:password@host:port/database?sslmode=require
+
+# Redis (from Render Redis dashboard)
+CELERY_BROKER_URL=redis://username:password@host:port
+CELERY_RESULT_BACKEND=redis://username:password@host:port
+
+# App Configuration
+DEBUG=false
+API_HOST=0.0.0.0
+API_PORT=8000
+ALLOWED_ORIGINS=*
+
+# Build Configuration (Required for Render)
+PYTHON_VERSION=3.11.9
+CARGO_HOME=/opt/render/project/.cargo
 ```
 
-### Redis Setup (Optional)
-
-For background tasks with Celery:
-
+### **Render Build Command:**
 ```bash
-# Using Docker
-docker run -d -p 6379:6379 redis:alpine
-
-# Or install Redis locally
+pip install --upgrade pip && pip install -r requirements.txt
 ```
 
-### Testing Database Setup
+### **Why These Environment Variables Are Needed:**
 
-Before running the application, test your database setup:
+- **`PYTHON_VERSION=3.11.9`**: Ensures Render uses the correct Python version that's compatible with our dependencies (especially Pydantic 1.10.13)
+- **`CARGO_HOME=/opt/render/project/.cargo`**: Provides a writable directory for Rust compilation tools used by some Python packages (like `psycopg2-binary`)
+- **Build Command**: Upgrades pip first to avoid compatibility issues, then installs all requirements
 
-```bash
-# Test database connectivity and operations
-python scripts/test_database.py
+## 📁 Project Structure
 
-# Set up database tables and migrations
-python scripts/setup_database.py
 ```
-
-### Running the Application
-
-1. **Start the FastAPI server:**
-   ```bash
-   python run.py
-   # or
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-2. **Start Celery worker (in new terminal):**
-   ```bash
-   celery -A app.celery_app worker --loglevel=info
-   ```
-
-3. **Access the API:**
-   - API: http://localhost:8000
-   - Documentation: http://localhost:8000/docs
-   - Health Check: http://localhost:8000/health
-
-## API Endpoints
-
-### Sensor Data
-
-- `POST /sensor-data` - Upload sensor readings
-- `GET /readings` - Get sensor readings with filtering
-
-### Analytics
-
-- `GET /analytics` - Get comprehensive analytics
-- `GET /analytics/field/{field_id}` - Get field-specific analytics
-- `GET /analytics/sensor/{sensor_type}` - Get sensor-type analytics
-
-### System
-
-- `GET /health` - Health check
-- `GET /task/{task_id}` - Check background task status
-
-## Database Schema
-
-### Sensor Readings Table
-```sql
-CREATE TABLE sensor_readings (
-    id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-    field_id VARCHAR(50) NOT NULL,
-    sensor_type VARCHAR(50) NOT NULL,
-    reading_value FLOAT NOT NULL,
-    unit VARCHAR(20) NOT NULL
-);
-```
-
-### Daily Stats Table
-```sql
-CREATE TABLE daily_stats (
-    id SERIAL PRIMARY KEY,
-    date TIMESTAMP WITH TIME ZONE NOT NULL,
-    field_id VARCHAR(50) NOT NULL,
-    sensor_type VARCHAR(50) NOT NULL,
-    avg_value FLOAT NOT NULL,
-    min_value FLOAT NOT NULL,
-    max_value FLOAT NOT NULL,
-    count_readings INTEGER NOT NULL
-);
-```
-
-## Background Tasks
-
-### Celery Tasks
-
-1. **process_sensor_data_batch**: Process large batches of sensor data
-2. **calculate_daily_stats**: Calculate daily statistics
-3. **cleanup_old_data**: Clean up old sensor data (90+ days)
-
-### Task Monitoring
-
-- Check task status: `GET /task/{task_id}`
-- Monitor progress for large data uploads
-- Automatic daily stats calculation
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:password@localhost:5432/field_insights_db` |
-| `CELERY_BROKER_URL` | Redis broker URL | `redis://localhost:6379/0` |
-| `CELERY_RESULT_BACKEND` | Redis result backend | `redis://localhost:6379/0` |
-| `API_HOST` | API host address | `0.0.0.0` |
-| `API_PORT` | API port | `8000` |
-| `DEBUG` | Debug mode | `True` |
-| `ALLOWED_ORIGINS` | CORS allowed origins | `http://localhost:3000` |
-
-## Development
-
-### Project Structure
-```
-backend/
+backend-iotdash/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI application
-│   ├── database.py          # Database configuration
-│   ├── models.py            # SQLAlchemy models
-│   ├── schemas.py           # Pydantic schemas
-│   ├── services.py          # Business logic
-│   ├── tasks.py             # Celery tasks
+│   ├── main.py              # FastAPI application & endpoints
+│   ├── database.py          # Database configuration & connection
+│   ├── models.py            # SQLAlchemy database models
+│   ├── schemas.py           # Pydantic data validation schemas
+│   ├── services.py          # Business logic & analytics
+│   ├── tasks.py             # Celery background tasks
 │   └── celery_app.py        # Celery configuration
-├── requirements.txt
-├── run.py                   # Startup script
-├── env.example              # Environment template
-└── README.md
+├── alembic/                 # Database migration files
+│   ├── env.py              # Migration environment
+│   └── versions/           # Migration scripts
+├── requirements.txt         # Python dependencies
+├── runtime.txt             # Python version specification
+├── render.yaml             # Render deployment configuration
+├── run.py                  # Application entry point
+└── README.md              # This documentation
 ```
 
-### Adding New Endpoints
+## 🔧 Development
 
-1. **Create schema** in `schemas.py`
-2. **Add service method** in `services.py`
-3. **Create endpoint** in `main.py`
-4. **Update documentation**
+### **Database Migrations**
+```bash
+# Create a new migration
+alembic revision --autogenerate -m "Add new table"
 
-### Database Migrations
+# Apply migrations
+alembic upgrade head
 
-The application creates tables automatically on startup. For production, consider using Alembic for migrations.
+# Check migration status
+alembic current
+```
 
-## Production Deployment
+### **Local Development Tips**
 
-### Option A: Deploy to Render (Recommended)
+1. **SQLite Database**: Used by default for local development
+   - No setup required
+   - File-based storage
+   - Perfect for development and testing
 
-1. **Create PostgreSQL database on Render:**
-   - Go to [render.com](https://render.com)
-   - Create a new PostgreSQL database
-   - Note the external database URL
+2. **Redis (Optional)**: For local Celery functionality
+   - Install Redis locally or use Docker
+   - `docker run -d -p 6379:6379 redis:latest`
 
-2. **Deploy your application:**
-   - Connect your GitHub repository to Render
-   - Create a new Web Service
-   - Configure build settings:
-     - **Build Command**: `pip install -r requirements.txt`
-     - **Start Command**: `python run.py`
+3. **Debug Mode**: Set `DEBUG=true` in `.env` for:
+   - Detailed error messages
+   - SQL query logging
+   - Redis health check bypass
 
-3. **Set environment variables in Render:**
-   - `DATABASE_URL`: Your Render PostgreSQL URL
-   - `DEBUG`: `False`
-   - `API_HOST`: `0.0.0.0`
-   - `API_PORT`: `8000`
+### **Testing the API**
 
-4. **Deploy:**
-   - Render will automatically deploy your application
-   - The database will be set up on first run
+```bash
+# Health check
+curl http://localhost:8000/health
 
-### Option B: Docker Setup
+# Get analytics
+curl http://localhost:8000/analytics
 
-1. **Create Dockerfile:**
-   ```dockerfile
-   FROM python:3.9-slim
-   WORKDIR /app
-   COPY requirements.txt .
-   RUN pip install -r requirements.txt
-   COPY . .
-   CMD ["python", "run.py"]
-   ```
+# Upload sensor data
+curl -X POST http://localhost:8000/sensor-data \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "field_id": "field_001",
+      "sensor_type": "temperature",
+      "reading_value": 25.5,
+      "timestamp": "2024-01-01T12:00:00Z",
+      "unit": "celsius"
+    },
+    {
+      "field_id": "field_001",
+      "sensor_type": "humidity",
+      "reading_value": 60.2,
+      "timestamp": "2024-01-01T12:00:00Z",
+      "unit": "percent"
+    }
+  ]'
 
-2. **Create docker-compose.yml:**
-   ```yaml
-   version: '3.8'
-   services:
-     api:
-       build: .
-       ports:
-         - "8000:8000"
-       environment:
-         - DATABASE_URL=postgresql://postgres:password@db:5432/field_insights_db
-       depends_on:
-         - db
-         - redis
-     
-     db:
-       image: postgres:13
-       environment:
-         POSTGRES_DB: field_insights_db
-         POSTGRES_USER: postgres
-         POSTGRES_PASSWORD: password
-       volumes:
-         - postgres_data:/var/lib/postgresql/data
-     
-     redis:
-       image: redis:alpine
-     
-     celery:
-       build: .
-       command: celery -A app.celery_app worker --loglevel=info
-       depends_on:
-         - redis
-         - db
-   
-   volumes:
-     postgres_data:
-   ```
+# Get filtered readings
+curl "http://localhost:8000/readings?field_id=field_001&limit=10"
+```
 
-### Environment Setup
+## 🤝 Contributing
 
-1. **Set production environment variables**
-2. **Configure database with proper credentials**
-3. **Set up Redis for production**
-4. **Configure CORS for your domain**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests if applicable
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-## Monitoring and Logging
+## 📄 License
 
-### Health Checks
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- Database connection status
-- Redis connection status
-- Overall system health
+## 🆘 Support
 
-### Logging
+If you encounter any issues:
 
-- Application logs with structured format
-- Celery task logs
-- Database query logs (in debug mode)
+1. Check the health endpoint: `GET /health`
+2. Review the application logs
+3. Ensure all environment variables are set correctly
+4. Verify database and Redis connections
 
-## API Documentation
-
-Visit http://localhost:8000/docs for interactive API documentation.
-
-## Testing
-
-### Manual Testing
-
-1. **Health Check:**
-   ```bash
-   curl http://localhost:8000/health
-   ```
-
-2. **Upload Sensor Data:**
-   ```bash
-   curl -X POST "http://localhost:8000/sensor-data" \
-        -H "Content-Type: application/json" \
-        -d '[
-          {
-            "timestamp": "2024-01-01T10:00:00Z",
-            "field_id": "field_001",
-            "sensor_type": "soil_moisture",
-            "reading_value": 45.2,
-            "unit": "%"
-          }
-        ]'
-   ```
-
-3. **Get Analytics:**
-   ```bash
-   curl http://localhost:8000/analytics
-   ```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Database Connection Error:**
-   - Check PostgreSQL is running
-   - Verify DATABASE_URL in .env
-   - Ensure database exists
-
-2. **Redis Connection Error:**
-   - Check Redis is running
-   - Verify CELERY_BROKER_URL in .env
-
-3. **CORS Issues:**
-   - Update ALLOWED_ORIGINS in .env
-   - Check frontend URL is included
-
-4. **Celery Worker Not Starting:**
-   - Ensure Redis is running
-   - Check Celery configuration
-   - Verify task imports
-
-## License
-
-MIT License - see LICENSE file for details 
+For deployment issues on Render, check the build logs in your Render dashboard. 
