@@ -20,6 +20,12 @@ def get_database_url():
             # If it's already postgresql:// but no driver specified, add pg8000
             database_url = database_url.replace("postgresql://", "postgresql+pg8000://", 1)
         
+        # Add SSL parameters to URL for pg8000
+        if "?" in database_url:
+            database_url += "&sslmode=require"
+        else:
+            database_url += "?sslmode=require"
+        
         return database_url
     
     # Fallback to SQLite for local development
@@ -30,15 +36,12 @@ DATABASE_URL = get_database_url()
 
 # Create SQLAlchemy engine with appropriate configuration
 if DATABASE_URL.startswith("postgresql"):
-    # PostgreSQL configuration with SSL for Render
+    # PostgreSQL configuration
     engine = create_engine(
         DATABASE_URL,
         pool_pre_ping=True,
         pool_recycle=300,
-        echo=os.getenv("DEBUG", "False").lower() == "true",
-        connect_args={
-            "ssl": True  # Enable SSL for pg8000
-        }
+        echo=os.getenv("DEBUG", "False").lower() == "true"
     )
 else:
     # SQLite configuration
