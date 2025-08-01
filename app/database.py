@@ -30,12 +30,15 @@ DATABASE_URL = get_database_url()
 
 # Create SQLAlchemy engine with appropriate configuration
 if DATABASE_URL.startswith("postgresql"):
-    # PostgreSQL configuration
+    # PostgreSQL configuration with SSL for Render
     engine = create_engine(
         DATABASE_URL,
         pool_pre_ping=True,
         pool_recycle=300,
-        echo=os.getenv("DEBUG", "False").lower() == "true"
+        echo=os.getenv("DEBUG", "False").lower() == "true",
+        connect_args={
+            "sslmode": "require"  # Force SSL for Render PostgreSQL
+        }
     )
 else:
     # SQLite configuration
