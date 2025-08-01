@@ -16,6 +16,9 @@ def get_database_url():
         if database_url.startswith("postgres://"):
             # Convert postgres:// to postgresql+pg8000:// for pg8000
             database_url = database_url.replace("postgres://", "postgresql+pg8000://", 1)
+        elif database_url.startswith("postgresql://") and "+" not in database_url:
+            # If it's already postgresql:// but no driver specified, add pg8000
+            database_url = database_url.replace("postgresql://", "postgresql+pg8000://", 1)
         
         return database_url
     
@@ -26,7 +29,7 @@ def get_database_url():
 DATABASE_URL = get_database_url()
 
 # Create SQLAlchemy engine with appropriate configuration
-if DATABASE_URL.startswith("postgresql://"):
+if DATABASE_URL.startswith("postgresql"):
     # PostgreSQL configuration
     engine = create_engine(
         DATABASE_URL,
