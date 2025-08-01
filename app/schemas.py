@@ -19,7 +19,7 @@ class SensorReading(SensorReadingBase):
     id: int
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class SensorReadingBatch(BaseModel):
     """Schema for batch sensor readings"""

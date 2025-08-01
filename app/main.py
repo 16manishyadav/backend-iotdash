@@ -74,7 +74,11 @@ async def create_sensor_data(
         else:
             # Process immediately for small batches
             db_readings = SensorService.create_sensor_readings_batch(db, readings)
-            return db_readings
+            # Convert SQLAlchemy objects to Pydantic models
+            readings_schema = []
+            for reading in db_readings:
+                readings_schema.append(SensorReadingSchema.from_orm(reading))
+            return readings_schema
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing sensor data: {str(e)}")
@@ -219,7 +223,11 @@ async def get_readings(
             query = query.filter(SensorReading.sensor_type == sensor_type)
         
         readings = query.order_by(SensorReading.timestamp.desc()).offset(offset).limit(limit).all()
-        return readings
+        # Convert SQLAlchemy objects to Pydantic models
+        readings_schema = []
+        for reading in readings:
+            readings_schema.append(SensorReadingSchema.from_orm(reading))
+        return readings_schema
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching readings: {str(e)}")
