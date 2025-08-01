@@ -37,7 +37,7 @@ if DATABASE_URL.startswith("postgresql"):
         pool_recycle=300,
         echo=os.getenv("DEBUG", "False").lower() == "true",
         connect_args={
-            "sslmode": "require"  # Force SSL for Render PostgreSQL
+            "ssl": True  # Enable SSL for pg8000
         }
     )
 else:
