@@ -143,7 +143,8 @@ class HealthService:
     def check_database_connection(db: Session) -> bool:
         """Check if database connection is working"""
         try:
-            db.execute("SELECT 1")
+            from sqlalchemy import text
+            db.execute(text("SELECT 1"))
             return True
         except Exception:
             return False
@@ -152,8 +153,35 @@ class HealthService:
     def check_redis_connection() -> bool:
         """Check if Redis connection is working"""
         try:
+            import redis
             from .celery_app import celery_app
-            celery_app.control.inspect().active()
-            return True
+            
+            # Get Redis URL from Celery config
+            redis_url = celery_app.conf.broker_url
+            if redis_url.startswith('redis://'):
+                # Parse Redis URL
+                redis_url = redis_url.replace('redis://', '')
+                if '@' in redis_url:
+                    # Handle password
+                    auth, rest = redis_url.split('@', 1)
+                    password = auth.split(':', 1)[1] if ':' in auth else None
+                    host_port = rest.split('/', 1)[0]
+                    host, port = host_port.split(':')
+                    port = int(port)
+                else:
+                    # No password
+                    host_port = redis_url.split('/', 1)[0]
+                    host, port = host_port.split(':')
+                    port = int(port)
+                    password = None
+                
+                # Test connection
+                r = redis.Redis(host=host, port=port, password=password, socket_connect_timeout=5)
+                r.ping()
+                return True
+            else:
+                # Fallback to Celery inspect
+                celery_app.control.inspect().active()
+                return True
         except Exception:
             return False 
